@@ -1,0 +1,25 @@
+﻿@{
+    ViewBag.PageTitle = "Products Management";
+    ViewBag.CardTitle = "View Products";
+}
+
+<div>
+    <a href="/Admin/Product/Create" class="btn btn-primary">Create New Product</a>
+</div>
+<br />
+
+<table id="myTable" class="table table-hover" width="100%">
+    <thead>
+        <tr>
+            <td>Name</td>
+            <td>Description</td>
+            <td>Price</td>
+            <td>Category</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
+</table>
+
+@section Scripts {
+    <script src="~/js/products.js"></script>
+}
