@@ -17,7 +17,6 @@ namespace MyShop.Web.Areas.Admin.Controllers
             _context = context;
         }
 
-
         public IActionResult Index()
         {
             var claimsIdentity = User.Identity as ClaimsIdentity;
