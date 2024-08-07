@@ -1,0 +1,35 @@
+﻿@model IEnumerable<AppUser>
+
+@{
+    ViewBag.PageTitle = "Users Management";
+    ViewBag.CardTitle = "View Users";
+
+}
+
+<div>
+    <a href="Identity/Account/Register" class="btn btn-primary">Create New User</a>
+</div>
+<br />
+
+<table class="table table-hover" width="100%">
+    <tr>
+        <td>Name</td>
+        <td>Email</td>
+        <td>Phone Number</td>
+        <td>Actions</td>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.Name</td>
+            <td>@item.Email</td>
+            <td>@item.PhoneNumber</td>
+            <td>
+                <a class="btn btn-success" asp-action="LockUnlock">
+                    <i class="fas fa-lock-open"></i>
+                </a>
+                <a href="/Category/Delete/@item.Id" class="btn btn-danger">Delete</a>
+            </td>
+        </tr>
+    }
+</table>

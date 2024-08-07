@@ -21,7 +21,7 @@ namespace MyShop.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
 
-            builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders()
+            builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders().AddDefaultUI()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
