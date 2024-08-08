@@ -143,7 +143,21 @@ namespace MyShop.Web.Areas.Identity.Pages.Account
                 {
                     _logger.LogInformation("User created a new account with password.");
 
-                    await _userManager.AddToRoleAsync(user, SD.CustomerRole);
+
+                    string roleFromForm = HttpContext.Request.Form["RoleRadio"].ToString();
+
+                    if (String.IsNullOrEmpty(roleFromForm))
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.CustomerRole);
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return LocalRedirect(returnUrl);
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, roleFromForm);
+                    }
+
+                    return RedirectToAction("Index", "Users", new { area = SD.AdminRole });
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -161,11 +175,7 @@ namespace MyShop.Web.Areas.Identity.Pages.Account
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                     }
-                    else
-                    {
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
-                    }
+                   
                 }
                 foreach (var error in result.Errors)
                 {

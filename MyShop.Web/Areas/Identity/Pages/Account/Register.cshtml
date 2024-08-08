@@ -46,7 +46,26 @@
                         <label asp-for="Input.ConfirmPassword">Confirm Password</label>
                         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                     </div>
-                    <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+
+                    @if (User.IsInRole(SD.AdminRole))
+                    {
+                        <input type="radio" value="@SD.AdminRole" name="RoleRadio" /> @SD.AdminRole
+
+                        <input type="radio" value="@SD.CustomerRole" name="RoleRadio" />@SD.CustomerRole                        
+
+                        <input type="radio" value="@SD.EditorRole" name="RoleRadio" /> @SD.EditorRole
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Create User</button>
+                    }
+                    else
+                    {
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+
+                    }
+
+
+
                 </form>
             </div>
             <div class="col-md-6 col-md-offset-2">
