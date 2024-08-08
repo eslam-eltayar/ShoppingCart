@@ -4,6 +4,7 @@ using MyShop.DataAccess.Data;
 using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.ViewModels;
+using NuGet.Packaging.Signing;
 
 namespace MyShop.Web.Areas.Admin.Controllers
 {
@@ -55,22 +56,28 @@ namespace MyShop.Web.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 string rootPath = _webHostEnvironment.WebRootPath; // path of WWWroot
+                string uploadPath = Path.Combine(rootPath, "Images", "Products");
 
-                if (file is not null)
+                // Ensure the directory exists
+                if (!Directory.Exists(uploadPath))
                 {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                if (file != null && file.Length > 0)
+                {
+                    // Generate a unique file name
                     string fileName = Guid.NewGuid().ToString();
-                    var upload = Path.Combine(rootPath, @"Images\Products"); // rootPath/Images/Products
+                    string extension = Path.GetExtension(file.FileName); // Get the file extension from the uploaded file
+                    string filePath = Path.Combine(uploadPath, fileName + extension);
 
-                    var extention = Path.GetExtension(Path.Combine(upload, fileName)); // Extention for -> rootPath/Images/Products/img02158742331.pnj
-
-                    using (var fileStream = new FileStream(Path.Combine(upload, fileName + extention), FileMode.Create))
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
                         file.CopyTo(fileStream);
                     }
 
-                    productVm.Product.Img = @"Images\Products" + fileName + extention;
-
-
+                    // Store the relative path to the image
+                    productVm.Product.Img = Path.Combine("Images", "Products", fileName + extension);
                 }
 
 
@@ -116,31 +123,40 @@ namespace MyShop.Web.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 string rootPath = _webHostEnvironment.WebRootPath; // path of WWWroot
+                string uploadPath = Path.Combine(rootPath, "Images", "Products");
 
-                if (file is not null)
+                // Ensure the directory exists
+                if (!Directory.Exists(uploadPath))
                 {
+                    Directory.CreateDirectory(uploadPath);
+                }
+
+                if (file != null && file.Length > 0)
+                {
+                    // Generate a unique file name
                     string fileName = Guid.NewGuid().ToString();
-                    var upload = Path.Combine(rootPath, @"Images\Products"); // rootPath/Images/Products
+                    string extension = Path.GetExtension(file.FileName); // Get the file extension from the uploaded file
+                    string filePath = Path.Combine(uploadPath, fileName + extension);
 
-                    var extention = Path.GetExtension(Path.Combine(upload, fileName)); // Extention for -> rootPath/Images/Products/img0215-87-42331.pnj
-
-                    if (productVm.Product.Img is not null)
+                    if (productVm.Product.Img != null)
                     {
-                        var oldImg = Path.Combine(rootPath, productVm.Product.Img.TrimStart('\\'));
-
-                        if (System.IO.File.Exists(oldImg))
-                            System.IO.File.Delete(oldImg);
+                        var oldimg = Path.Combine(rootPath, productVm.Product.Img.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldimg))
+                        {
+                            System.IO.File.Delete(oldimg);
+                        }
                     }
 
-                    using (var fileStream = new FileStream(Path.Combine(upload, fileName + extention), FileMode.Create))
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
                         file.CopyTo(fileStream);
                     }
 
-                    productVm.Product.Img = @"Images\Products" + fileName + extention;
-
-
+                    // Store the relative path to the image
+                    productVm.Product.Img = Path.Combine("Images", "Products", fileName + extension);
                 }
+
 
                 _unitOfWork.Product.Update(productVm.Product);
                 _unitOfWork.Complete();

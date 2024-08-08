@@ -21,11 +21,12 @@ namespace MyShop.Web
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
 
-            builder.Services.AddIdentity<IdentityUser,IdentityRole>().AddDefaultTokenProviders().AddDefaultUI()
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(option => option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(2))
+                .AddDefaultTokenProviders().AddDefaultUI()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
-           
+
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             var app = builder.Build();
@@ -42,7 +43,10 @@ namespace MyShop.Web
 
             app.UseStaticFiles();
 
+
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
@@ -51,13 +55,14 @@ namespace MyShop.Web
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{area=Admin}/{controller}/{action=Index}/{id?}");
-            
-            
+
+
             app.MapControllerRoute(
                 name: "customer",
                 pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
+
         }
     }
 }

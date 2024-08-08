@@ -25,9 +25,19 @@
             <td>@item.Email</td>
             <td>@item.PhoneNumber</td>
             <td>
-                <a class="btn btn-success" asp-action="LockUnlock">
-                    <i class="fas fa-lock-open"></i>
-                </a>
+                @if (item.LockoutEnd == null || item.LockoutEnd < DateTime.Now)
+                {
+                    <a class="btn btn-success" asp-action="LockUnlock" asp-route-id="@item.Id">
+                        <i class="fas fa-lock-open"></i>
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-success" asp-action="LockUnlock" asp-route-id="@item.Id">
+                        <i class="fas fa-lock"></i>
+                    </a>
+                }
+
                 <a href="/Category/Delete/@item.Id" class="btn btn-danger">Delete</a>
             </td>
         </tr>

@@ -27,5 +27,24 @@ namespace MyShop.Web.Areas.Admin.Controllers
 
             return View(users);
         }
+
+
+        public IActionResult LockUnlock(string? id)
+        {
+            var user = _context.AppUsers.FirstOrDefault(U => U.Id == id);
+
+            if (user is null)
+                return NotFound();
+
+            if (user.LockoutEnd == null || user.LockoutEnd < DateTime.Now)
+                user.LockoutEnd = DateTime.Now.AddMonths(3); // will lock account for 3 months
+            else
+                user.LockoutEnd = DateTime.Now;
+
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Users", new { area = SD.AdminRole });
+
+        }
     }
 }
