@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyShop.Entities.Repositories;
-using MyShop.Entities.ViewModels;
+using MyShop.Entities.Models;
 
 namespace MyShop.Web.Areas.Customer.Controllers
 {
