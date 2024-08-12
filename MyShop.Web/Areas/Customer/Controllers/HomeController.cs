@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using MyShop.DataAccess.Repositories.Imp;
 
 namespace MyShop.Web.Areas.Customer.Controllers
 {
@@ -19,14 +22,42 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
             return View(products);
         }
-        public IActionResult Details(int id)
+
+        public IActionResult Details(int Id)
         {
-            ShoppingCart cart = new ShoppingCart()
+            ShoppingCart obj = new ShoppingCart()
             {
-                Product = _unitOfWork.Product.GetFirstOrDefault(P => P.Id == id, Includes: "Category"),
+                ProductId = Id,
+                Product = _unitOfWork.Product.GetFirstOrDefault(v => v.Id == Id, Includes: "Category"),
                 Count = 1
             };
-            return View(cart);
+            return View(obj);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public IActionResult Details(ShoppingCart shoppingCart)
+        {
+
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            shoppingCart.AppUserId = claim.Value;
+
+            ShoppingCart cartObj = _unitOfWork.ShoppingCart.GetFirstOrDefault(
+                C => C.AppUserId == claim.Value && C.ProductId == shoppingCart.ProductId
+                );
+
+
+            if (cartObj is null)
+                _unitOfWork.ShoppingCart.Add(shoppingCart);
+            else
+                _unitOfWork.ShoppingCart.IncreaseCart(cartObj, shoppingCart.Count);
+
+
+            _unitOfWork.Complete();
+
+            return RedirectToAction("Index");
         }
     }
 }

@@ -17,6 +17,17 @@ namespace MyShop.DataAccess.Repositories.Imp
         {
             _context = context;
         }
-        
+
+        public int DecreaseCart(ShoppingCart cart, int count)
+        {
+            cart.Count -= count;
+            return cart.Count;
+        }
+
+        public int IncreaseCart(ShoppingCart cart, int count)
+        {
+            cart.Count += count;
+            return cart.Count;
+        }
     }
 }
