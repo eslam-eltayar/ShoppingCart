@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.ViewModels;
@@ -90,7 +91,7 @@ namespace MyShop.Web.Areas.Customer.Controllers
             ShoppingCartVM = new ShoppingCartViewModel()
             {
                 ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(S => S.AppUserId == claim.Value, Includes: "Product"),
-                OrderHeader = new()
+                OrderHeader = new OrderHeader()
             };
 
             ShoppingCartVM.OrderHeader.AppUser = _unitOfWork.AppUser.GetFirstOrDefault(x => x.Id == claim.Value);
@@ -124,7 +125,7 @@ namespace MyShop.Web.Areas.Customer.Controllers
             shoppingCartVM.OrderHeader.AppUserId = claim.Value;
 
 
-            foreach (var item in ShoppingCartVM.ShoppingCarts)
+            foreach (var item in shoppingCartVM.ShoppingCarts)
             {
                 shoppingCartVM.OrderHeader.TotalPrice += (item.Count * item.Product.Price);
             }
@@ -157,9 +158,9 @@ namespace MyShop.Web.Areas.Customer.Controllers
                 CancelUrl = domain + $"customer/cart/index",
             };
 
-            foreach (var item in ShoppingCartVM.ShoppingCarts)
+            foreach (var item in shoppingCartVM.ShoppingCarts)
             {
-                var sessionlineoption = new SessionLineItemOptions
+                var sessionLineOption = new SessionLineItemOptions
                 {
                     PriceData = new SessionLineItemPriceDataOptions
                     {
@@ -172,13 +173,15 @@ namespace MyShop.Web.Areas.Customer.Controllers
                     },
                     Quantity = item.Count,
                 };
-                options.LineItems.Add(sessionlineoption);
+                options.LineItems.Add(sessionLineOption);
             }
 
 
             var service = new SessionService();
             Session session = service.Create(options);
-            ShoppingCartVM.OrderHeader.SessionId = session.Id;
+            shoppingCartVM.OrderHeader.SessionId = session.Id;
+            shoppingCartVM.OrderHeader.PaymentIntentId = session.PaymentIntentId;
+
 
             _unitOfWork.Complete();
 
@@ -186,6 +189,27 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
 
             return new StatusCodeResult(303);
+        }
+
+        public IActionResult OrderConfirmation(int id)
+        {
+            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
+            var service = new SessionService();
+            Session session = service.Get(orderHeader.SessionId);
+
+            if(session.PaymentStatus.ToLower() == "paid")
+            {
+                _unitOfWork.OrderHeader.UpdateOrderStatus(id, SD.Approve, SD.Approve);
+                _unitOfWork.Complete();
+            }
+
+            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == orderHeader.AppUserId).ToList(); 
+            // get oder cart of current user 
+
+            _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // remove the cart of user after order confirmation
+            _unitOfWork.Complete();
+
+            return View(id);
         }
     }
 }

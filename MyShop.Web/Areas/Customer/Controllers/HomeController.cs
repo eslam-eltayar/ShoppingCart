@@ -37,9 +37,9 @@ namespace MyShop.Web.Areas.Customer.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public IActionResult Details(ShoppingCart shoppingCart)
+        public IActionResult Details([FromForm] ShoppingCart shoppingCart)
         {
-
+            
             var claimsIdentity = (ClaimsIdentity)User.Identity;
             var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
             shoppingCart.AppUserId = claim.Value;

@@ -33,7 +33,6 @@
                                                     <div class="row">
                                                         <div class="col-md-5 product-name">
                                                             <div class="product-name">
-                                                                <a href="#">Lorem Ipsum dolor</a>
                                                                 <div class="product-info">
                                                                     <div>Description: <span class="value">@item.Product.Description</span></div>
                                                                 </div>
@@ -51,7 +50,7 @@
                                                             <span>$@item.Product.Price</span>
                                                         </div>
                                                         <div class="col-md-1">
-                                                            <a asp-action="Remove" asp-route-id="@item.Id" class="btn btn-danger">X</a>
+                                                            <a asp-action="Remove" asp-route-cartId="@item.Id" class="btn btn-danger">X</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -69,7 +68,8 @@
                                 <div class="summary-item"><span class="text">Discount</span><span class="price">$0</span></div>
                                 <div class="summary-item"><span class="text">Shipping</span><span class="price">$0</span></div> *@
                                 <div class="summary-item"><span class="text">Total</span><span class="price">$@Model.TotalPrice</span></div>
-                                <button type="button" class="btn btn-primary btn-lg btn-block">Checkout</button>
+                                @* <button type="button" class="btn btn-primary btn-lg btn-block">Checkout</button> *@
+                                <a href="\Customer\Cart\Summary" class="btn btn-primary btn-lg btn-block"> Checkout </a>
                             </div>
                         </div>
                     </div>

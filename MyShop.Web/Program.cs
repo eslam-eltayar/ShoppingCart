@@ -49,7 +49,7 @@ namespace MyShop.Web
 
             app.UseRouting();
 
-            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKet").Get<string>();
+            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:Secretkey").Get<string>();
 
             app.UseAuthentication();
 

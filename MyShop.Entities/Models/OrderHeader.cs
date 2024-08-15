@@ -41,7 +41,8 @@ namespace MyShop.Entities.Models
         public string Address { get; set; }
         public string City { get; set; }
 
-        [Phone]
+        [Required(ErrorMessage = "The phone number is required.")]
+        [Phone(ErrorMessage = "Please enter a valid phone number.")]
         public string Phone { get; set; }
 
     }
