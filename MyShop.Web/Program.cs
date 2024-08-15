@@ -5,6 +5,7 @@ using MyShop.Entities.Repositories;
 using Microsoft.AspNetCore.Identity;
 using MyShop.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Stripe;
 
 namespace MyShop.Web
 {
@@ -20,6 +21,8 @@ namespace MyShop.Web
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
             );
+
+            builder.Services.Configure<StripeData>(builder.Configuration.GetSection("Stripe"));
 
             builder.Services.AddIdentity<IdentityUser, IdentityRole>(option => option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(2))
                 .AddDefaultTokenProviders().AddDefaultUI()
@@ -45,6 +48,8 @@ namespace MyShop.Web
 
 
             app.UseRouting();
+
+            StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKet").Get<string>();
 
             app.UseAuthentication();
 

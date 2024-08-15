@@ -11,6 +11,13 @@ namespace MyShop.Entities.Repositories
         ICategoryRepository Category { get; }
         IProductRepository Product { get; }
         IShoppingCartRepository ShoppingCart { get; }
+
+
+        IOrderHeaderRepository OrderHeader { get; }
+        IOrderDetailRepository OrderDetail { get; }
+
+        IApplicationUserRepository AppUser { get; }
+
         int Complete();
 
     }

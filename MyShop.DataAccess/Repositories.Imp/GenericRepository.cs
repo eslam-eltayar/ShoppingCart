@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MyShop.DataAccess.Repositories.Imp
 {
-    public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
+    public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         private readonly ApplicationDbContext _context;
         private readonly DbSet<T> _dbSet;

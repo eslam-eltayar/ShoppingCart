@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MyShop.Entities.Repositories
 {
-    public interface IGenericRepository<T> where T : BaseEntity
+    public interface IGenericRepository<T> where T : class
     {
         IEnumerable<T> GetAll(Expression<Func<T, bool>>? predicate = null, string? Includes = null);
         T GetFirstOrDefault(Expression<Func<T, bool>>? predicate = null, string? Includes = null);

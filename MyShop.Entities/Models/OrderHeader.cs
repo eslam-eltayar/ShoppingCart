@@ -11,6 +11,7 @@ namespace MyShop.Entities.Models
     public class OrderHeader : BaseEntity
     {
         [ValidateNever]
+        
         public AppUser AppUser { get; set; } // Nav prop
         public string AppUserId { get; set; } // FK
 
