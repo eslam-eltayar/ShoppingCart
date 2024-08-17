@@ -21,7 +21,7 @@
 
             <div class="form-group">
                 <label asp-for="Product.Description" class="control-label"></label>
-                <input asp-for="Product.Description" class="form-control" />
+                <textarea asp-for="Product.Description" class="form-control" id="mytextarea"></textarea>
                 <span asp-validation-for="Product.Description" class="text-danger"></span>
             </div>
 
@@ -59,4 +59,9 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        tinymce.init({
+            selector: '#mytextarea'
+        });
+    </script>
 }

@@ -22,7 +22,9 @@
 
             <div class="mb-3">
                 <label asp-for="Description"></label>
-                <input asp-for="Description" disabled class="form-control" />
+                <div class="form-control" readonly>
+                    @Html.Raw(Model.Description)
+                </div>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 

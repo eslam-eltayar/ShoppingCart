@@ -1,10 +1,7 @@
 ﻿@model Category
-
-
 @{
     ViewBag.PageTitle = "Category Management";
     ViewBag.CardTitle = "Create Category";
-
 }
 
 <div class="row">
@@ -21,7 +18,7 @@
 
             <div class="mb-3">
                 <label asp-for="Description"></label>
-                <input asp-for="Description" class="form-control" />
+                <textarea asp-for="Description" class="form-control" id="mytextarea"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
             </div>
 
@@ -41,4 +38,9 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        tinymce.init({
+            selector: '#mytextarea'
+        });
+    </script>
 }

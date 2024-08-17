@@ -12,17 +12,19 @@
 <br />
 
 <table class="table table-hover" width="100%">
-    <tr>
-        <td>Name</td>
-        <td>Description</td>
-        <td>Date Created</td>
-        <td>Actions</td>
-    </tr>
+    <thead class="text-bold">
+        <tr>
+            <td>Name</td>
+            <td>Description</td>
+            <td>Date Created</td>
+            <td>Actions</td>
+        </tr>
+    </thead>
     @foreach (var item in Model)
     {
         <tr>
             <td>@item.Name</td>
-            <td>@item.Description</td>
+            <td>@Html.Raw(item.Description)</td>
             <td>@item.CreatedTime</td>
             <td>
                 <a href="/Admin/Category/Edit/@item.Id" class="btn btn-success">Edit</a>
