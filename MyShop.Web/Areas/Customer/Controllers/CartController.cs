@@ -180,7 +180,7 @@ namespace MyShop.Web.Areas.Customer.Controllers
             var service = new SessionService();
             Session session = service.Create(options);
             shoppingCartVM.OrderHeader.SessionId = session.Id;
-            shoppingCartVM.OrderHeader.PaymentIntentId = session.PaymentIntentId;
+            
 
 
             _unitOfWork.Complete();
@@ -200,7 +200,8 @@ namespace MyShop.Web.Areas.Customer.Controllers
             if(session.PaymentStatus.ToLower() == "paid")
             {
                 _unitOfWork.OrderHeader.UpdateOrderStatus(id, SD.Approve, SD.Approve);
-                _unitOfWork.Complete();
+				orderHeader.PaymentIntentId = session.PaymentIntentId;
+				_unitOfWork.Complete();
             }
 
             List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == orderHeader.AppUserId).ToList(); 

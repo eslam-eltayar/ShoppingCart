@@ -30,6 +30,7 @@ namespace MyShop.DataAccess.Repositories.Imp
             if (orderHeaderFromDb != null)
             {
                 orderHeaderFromDb.OrderStatus = orderStatus;
+                orderHeaderFromDb.OrderDate = DateTime.Now;
 
                 if (paymentStatus != null)
                 {
