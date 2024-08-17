@@ -23,7 +23,7 @@ namespace MyShop.DataAccess.Repositories.Imp
             _context.OrderHeaders.Update(orderHeader);
         }
 
-        public void UpdateOrderStatus(int id, string orderStatus, string paymentStatus)
+        public void UpdateOrderStatus(int id, string? orderStatus, string? paymentStatus)
         {
             var orderHeaderFromDb = _context.OrderHeaders.FirstOrDefault(x => x.Id == id);
 

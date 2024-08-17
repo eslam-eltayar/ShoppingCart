@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.ViewModels;
+using MyShop.Utilities;
+using Stripe;
 
 namespace MyShop.Web.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.AdminRole)]
     public class OrderController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -70,5 +74,68 @@ namespace MyShop.Web.Areas.Admin.Controllers
 
             return RedirectToAction(nameof(Details), "Order", new { orderid = orderFromDb.Id });
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult StartProccess()
+        {
+            _unitOfWork.OrderHeader.UpdateOrderStatus(OrderVM.OrderHeader.Id, SD.Proccessing, null);
+            _unitOfWork.Complete();
+
+            TempData["Update"] = "Order Status has Updated Successfuly";
+
+            return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult StartShip()
+        {
+            var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
+
+            orderFromDb.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
+            orderFromDb.Carrier = OrderVM.OrderHeader.Carrier;
+            orderFromDb.OrderStatus = SD.Shipped;
+            orderFromDb.ShippingDate = DateTime.Now;
+
+            _unitOfWork.OrderHeader.Update(orderFromDb);
+            _unitOfWork.Complete();
+
+            TempData["Update"] = "Order has Shipped Successfuly";
+
+            return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CancelOrder()
+        {
+            var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
+
+            if (orderFromDb.PaymentStatus == SD.Approve)
+            {
+                var option = new RefundCreateOptions()
+                {
+                    Reason = RefundReasons.RequestedByCustomer,
+                    PaymentIntent = orderFromDb.PaymentIntentId
+                };
+
+                var service = new RefundService();
+                Refund refund = service.Create(option);
+
+                _unitOfWork.OrderHeader.UpdateOrderStatus(orderFromDb.Id, SD.Cancelled, SD.Refund);
+            }
+            else
+            {
+                _unitOfWork.OrderHeader.UpdateOrderStatus(orderFromDb.Id, SD.Cancelled, SD.Cancelled);
+            }
+            _unitOfWork.Complete();
+
+
+            TempData["Update"] = "Order has Cancelled Successfuly";
+
+            return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
+        }
+
     }
 }

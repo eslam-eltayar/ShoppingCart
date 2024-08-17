@@ -1,5 +1,4 @@
 ﻿@model OrderViewModel
-@using MyShop.Utilities
 
 <form method="post">
     <div class="container">
@@ -149,18 +148,18 @@
                                 </div>
                             </li>
                         </ul>
-                        @* @if (Model.OrderHeader.OrderStatus == SD.Approve)
+                        @if (Model.OrderHeader.OrderStatus == SD.Approve)
                         {
-                        <input type="submit" asp-action="StartProccess" class="btn btn-primary" value="Start Proccess" />
+                            <input type="submit" asp-action="StartProccess" class="btn btn-primary" value="Start Proccess" />
                         }
                         @if (Model.OrderHeader.OrderStatus == SD.Proccessing)
                         {
-                        <input type="submit" asp-action="StartShip" onclick="return CheckData()" class="btn btn-success" value="Start Shipping" />
+                            <input type="submit" asp-action="StartShip" onclick="return CheckData()" class="btn btn-success" value="Start Shipping" />
                         }
                         @if (Model.OrderHeader.OrderStatus != SD.Cancelled || Model.OrderHeader.OrderStatus != SD.Refund)
                         {
-                        <input type="submit" class="btn btn-danger" asp-action="CancelOrder" value="Cancel Order" />
-                        } *@
+                            <input type="submit" class="btn btn-danger" asp-action="CancelOrder" value="Cancel Order" />
+                        }
                     </div>
                 </div>
             </div>
@@ -169,7 +168,7 @@
 </form>
 
 
-@* @section Scripts {
+@section Scripts {
 
 	<script>
 
@@ -198,4 +197,4 @@
 		}
 	</script>
 
-} *@
+}
