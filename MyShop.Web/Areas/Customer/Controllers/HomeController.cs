@@ -4,6 +4,7 @@ using MyShop.Entities.Models;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using MyShop.DataAccess.Repositories.Imp;
+using X.PagedList.Extensions;
 
 namespace MyShop.Web.Areas.Customer.Controllers
 {
@@ -16,9 +17,13 @@ namespace MyShop.Web.Areas.Customer.Controllers
         {
             _unitOfWork = unitOfWork;
         }
-        public IActionResult Index()
+        public IActionResult Index(int? page)
         {
-            var products = _unitOfWork.Product.GetAll();
+            int pageNumber = page ?? 1; // if page is NULL ->> pageNumber = 1 
+            int pageSize = 8;
+
+
+            var products = _unitOfWork.Product.GetAll().ToPagedList(pageNumber , pageSize);
 
             return View(products);
         }
