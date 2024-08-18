@@ -54,18 +54,19 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
         public IActionResult Minus(int cartId)
         {
-            var shppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
+            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
 
-            if (shppingcart.Count <= 1)
+            if (shoppingcart.Count <= 1)
             {
-                _unitOfWork.ShoppingCart.Remove(shppingcart);
-                _unitOfWork.Complete();
+                _unitOfWork.ShoppingCart.Remove(shoppingcart);
 
-                return RedirectToAction("Index", "Home");
+                var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
+                HttpContext.Session.SetInt32(SD.SessionKey, count--);
+             
             }
             else
             {
-                _unitOfWork.ShoppingCart.DecreaseCart(shppingcart, 1);
+                _unitOfWork.ShoppingCart.DecreaseCart(shoppingcart, 1);
             }
             _unitOfWork.Complete();
 
@@ -78,6 +79,9 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
             _unitOfWork.ShoppingCart.Remove(shoppingcart);
             _unitOfWork.Complete();
+
+            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
+            HttpContext.Session.SetInt32(SD.SessionKey, count);
 
             return RedirectToAction("Index");
         }

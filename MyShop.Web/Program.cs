@@ -16,7 +16,7 @@ namespace MyShop.Web
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); ;
             builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -31,6 +31,9 @@ namespace MyShop.Web
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            builder.Services.AddDistributedMemoryCache();// Helps to quickly access frequently used data without repeatedly fetching it from a database or other slow sources.
+            builder.Services.AddSession(); // Enables the ability to store user-specific data (like shopping cart contents) between different pages or visits.
 
             var app = builder.Build();
 
@@ -54,6 +57,8 @@ namespace MyShop.Web
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseSession();
 
             app.MapRazorPages();
 

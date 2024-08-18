@@ -1,11 +1,15 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@using MyShop.Utilities
+@inject IHttpContextAccessor httpAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Shop Homepage - Start Bootstrap Template</title>
+    <title>Online Shopping System</title>
     <!-- Favicon-->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
     <!-- Bootstrap icons-->
@@ -32,7 +36,6 @@
                                 <li><a class="dropdown-item" href="#!">Edit Profile</a></li>
                             </ul>
                         </li>
-
                     }
                 </ul>
 
@@ -41,32 +44,14 @@
                     <a href="/Customer/Cart/Index" class="btn btn-outline-dark">
                         <i class="bi-cart-fill me-1"></i>
                         Cart
-                        <span class="badge bg-dark text-white ms-1 rounded-pill">0</span>
+                        @await Component.InvokeAsync("Cart")
                     </a>
                 </form>
             </div>
         </div>
     </nav>
-    <!-- Header-->
-    <header class="bg-dark py-5" style="no-repeat center center/cover; position: relative;">
-        <div class="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);"></div>
-        <div class="container px-4 px-lg-5 my-5">
-            <div class="text-center text-white position-relative" style="z-index: 2;">
-                <h1 class="display-4 fw-bolder text-uppercase animate__animated animate__fadeInDown">Top Electronics Await You!</h1>
-                <p class="lead fw-normal text-white-50 mb-0 animate__animated animate__fadeInUp">Find the best prices on smartphones, screens, and more with our latest offers.</p>
-                <a href="#shop" class="btn btn-primary btn-lg mt-4 animate__animated animate__bounceIn">Start Shopping</a>
-            </div>
-        </div>
-    </header>
     <!-- Section-->
-    <section id="shop">
-
     @RenderBody()
-    </section>
-    <!-- Footer-->
-    <footer class="py-5 bg-dark">
-        <div class="container"><p class="m-0 text-center text-white">Copyright &copy; Your Website 2024</p></div>
-    </footer>
     <!-- Bootstrap core JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
