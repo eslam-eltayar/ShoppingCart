@@ -175,7 +175,7 @@ namespace MyShop.Web.Areas.Identity.Pages.Account
                     {
                         return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl = returnUrl });
                     }
-                   
+
                 }
                 foreach (var error in result.Errors)
                 {

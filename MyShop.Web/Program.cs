@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using MyShop.Utilities;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Stripe;
+using MyShop.Entities.Models;
 
 namespace MyShop.Web
 {
@@ -24,9 +25,10 @@ namespace MyShop.Web
 
             builder.Services.Configure<StripeData>(builder.Configuration.GetSection("Stripe"));
 
-            builder.Services.AddIdentity<IdentityUser, IdentityRole>(option => option.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(2))
-                .AddDefaultTokenProviders().AddDefaultUI()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(4))
+                            .AddDefaultTokenProviders().AddDefaultUI()
+                            .AddEntityFrameworkStores<ApplicationDbContext>();
+    
 
             builder.Services.AddSingleton<IEmailSender, EmailSender>();
 

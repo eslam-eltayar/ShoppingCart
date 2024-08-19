@@ -25,20 +25,21 @@
                 <div class="col-lg-6 col-md-8 col-sm-10 offset-lg-0 offset-md-2 offset-sm-1">
                     <div class="mobile h5">Billing Address</div>
                     <div id="details" class="bg-white rounded pb-5">
-
                         <div class="form-group">
-                            <label class="text-muted">Name</label>
-                            <input asp-for="OrderHeader.Name" type="text" class="form-control">
-                            <span asp-validation-for="OrderHeader.Name"></span>
+                            <label>Name</label>
+                            <div class="d-flex jusify-content-start align-items-center rounded p-2">
+                                <input asp-for="OrderHeader.Name" type="text">
+                                <span asp-validation-for="OrderHeader.Name" class="text-danger"></span>
+                            </div>
                         </div>
+
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="form-group">
                                     <label>City</label>
                                     <div class="d-flex jusify-content-start align-items-center rounded p-2">
                                         <input asp-for="OrderHeader.City" type="text">
-                                        <span class="fas fa-check text-success pr-2"></span>
-                                        <span asp-validation-for="OrderHeader.City"></span>
+                                        <span asp-validation-for="OrderHeader.City" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
@@ -47,7 +48,6 @@
                                     <label>Phone Number</label>
                                     <div class="d-flex jusify-content-start align-items-center rounded p-2">
                                         <input asp-for="OrderHeader.Phone" type="text">
-                                        <span class="fas fa-check text-success pr-2"></span>
                                         <span asp-validation-for="OrderHeader.Phone" class="text-danger"></span>
                                     </div>
                                 </div>
@@ -59,8 +59,7 @@
                                     <label>Address</label>
                                     <div class="d-flex jusify-content-start align-items-center rounded p-2">
                                         <input type="text" asp-for="OrderHeader.Address" />
-                                        <span class="fas fa-check text-success pr-2"></span>
-                                        <span asp-validation-for="OrderHeader.Address"></span>
+                                        <span asp-validation-for="OrderHeader.Address" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
@@ -73,7 +72,7 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="h6">Cart Summary</div>
                             <div class="h6">
-                                <a href="#">Edit</a>
+                                <a href="/Customer/Cart/Index">Edit</a>
                             </div>
                         </div>
                         @foreach (var item in Model.ShoppingCarts)
@@ -141,3 +140,7 @@
 
 </body>
 </html>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

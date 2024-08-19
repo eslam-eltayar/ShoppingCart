@@ -30,60 +30,15 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
             ShoppingCartVM = new ShoppingCartViewModel()
             {
-                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(S => S.AppUserId == claim.Value , Includes: "Product")
+                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(S => S.AppUserId == claim.Value, Includes: "Product")
             };
 
             foreach (var item in ShoppingCartVM.ShoppingCarts)
             {
-                ShoppingCartVM.TotalPrice +=  (item.Count * item.Product.Price);
+                ShoppingCartVM.TotalPrice += (item.Count * item.Product.Price);
             }
 
             return View(ShoppingCartVM);
-        }
-
-        public IActionResult Plus(int cartId)
-        {
-            var shppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-            _unitOfWork.ShoppingCart.IncreaseCart(shppingcart, 1);
-
-            _unitOfWork.Complete();
-
-            return RedirectToAction("Index");
-        }
-
-
-        public IActionResult Minus(int cartId)
-        {
-            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-
-            if (shoppingcart.Count <= 1)
-            {
-                _unitOfWork.ShoppingCart.Remove(shoppingcart);
-
-                var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
-                HttpContext.Session.SetInt32(SD.SessionKey, count--);
-             
-            }
-            else
-            {
-                _unitOfWork.ShoppingCart.DecreaseCart(shoppingcart, 1);
-            }
-            _unitOfWork.Complete();
-
-            return RedirectToAction("Index");
-        }
-
-        public IActionResult Remove(int cartId)
-        {
-            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-
-            _unitOfWork.ShoppingCart.Remove(shoppingcart);
-            _unitOfWork.Complete();
-
-            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
-            HttpContext.Session.SetInt32(SD.SessionKey, count);
-
-            return RedirectToAction("Index");
         }
 
         [HttpGet]
@@ -94,8 +49,8 @@ namespace MyShop.Web.Areas.Customer.Controllers
 
             ShoppingCartVM = new ShoppingCartViewModel()
             {
-                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(S => S.AppUserId == claim.Value, Includes: "Product"),
-                OrderHeader = new OrderHeader()
+                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == claim.Value, Includes: "Product"),
+                OrderHeader = new()
             };
 
             ShoppingCartVM.OrderHeader.AppUser = _unitOfWork.AppUser.GetFirstOrDefault(x => x.Id == claim.Value);
@@ -111,6 +66,7 @@ namespace MyShop.Web.Areas.Customer.Controllers
             }
 
             return View(ShoppingCartVM);
+
         }
 
         [HttpPost]
@@ -184,7 +140,7 @@ namespace MyShop.Web.Areas.Customer.Controllers
             var service = new SessionService();
             Session session = service.Create(options);
             shoppingCartVM.OrderHeader.SessionId = session.Id;
-            
+
 
 
             _unitOfWork.Complete();
@@ -201,20 +157,71 @@ namespace MyShop.Web.Areas.Customer.Controllers
             var service = new SessionService();
             Session session = service.Get(orderHeader.SessionId);
 
-            if(session.PaymentStatus.ToLower() == "paid")
+            if (session.PaymentStatus.ToLower() == "paid")
             {
                 _unitOfWork.OrderHeader.UpdateOrderStatus(id, SD.Approve, SD.Approve);
-				orderHeader.PaymentIntentId = session.PaymentIntentId;
-				_unitOfWork.Complete();
+                orderHeader.PaymentIntentId = session.PaymentIntentId;
+                _unitOfWork.Complete();
             }
 
-            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == orderHeader.AppUserId).ToList(); 
+            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == orderHeader.AppUserId).ToList();
             // get oder cart of current user 
 
             _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // remove the cart of user after order confirmation
             _unitOfWork.Complete();
 
+            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == orderHeader.AppUserId).ToList().Count();
+            HttpContext.Session.SetInt32(SD.SessionKey, count);
+
             return View(id);
         }
+
+
+
+        public IActionResult Plus(int cartId)
+        {
+            var shppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
+            _unitOfWork.ShoppingCart.IncreaseCart(shppingcart, 1);
+
+            _unitOfWork.Complete();
+
+            return RedirectToAction("Index");
+        }
+
+
+        public IActionResult Minus(int cartId)
+        {
+            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
+
+            if (shoppingcart.Count <= 1)
+            {
+                _unitOfWork.ShoppingCart.Remove(shoppingcart);
+
+                var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
+                HttpContext.Session.SetInt32(SD.SessionKey, count--);
+
+            }
+            else
+            {
+                _unitOfWork.ShoppingCart.DecreaseCart(shoppingcart, 1);
+            }
+            _unitOfWork.Complete();
+
+            return RedirectToAction("Index");
+        }
+
+        public IActionResult Remove(int cartId)
+        {
+            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
+
+            _unitOfWork.ShoppingCart.Remove(shoppingcart);
+            _unitOfWork.Complete();
+
+            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
+            HttpContext.Session.SetInt32(SD.SessionKey, count);
+
+            return RedirectToAction("Index");
+        }
+
     }
 }

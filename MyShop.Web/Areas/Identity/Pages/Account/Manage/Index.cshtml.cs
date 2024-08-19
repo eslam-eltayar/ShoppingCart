@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MyShop.Entities.Models;
 
 namespace MyShop.Web.Areas.Identity.Pages.Account.Manage
 {
@@ -58,6 +59,10 @@ namespace MyShop.Web.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+
+            public string Name { get; set; }
+            public string Address { get; set; }
+            public string City { get; set; }
         }
 
         private async Task LoadAsync(IdentityUser user)

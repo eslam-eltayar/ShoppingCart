@@ -11,7 +11,6 @@ namespace MyShop.Entities.Models
     public class OrderHeader : BaseEntity
     {
         [ValidateNever]
-        
         public AppUser AppUser { get; set; } // Nav prop
         public string AppUserId { get; set; } // FK
 
@@ -36,13 +35,17 @@ namespace MyShop.Entities.Models
 
 
         // Data of User
-
+        [Required(ErrorMessage = "Name is required.")]
         public string Name { get; set; }
+
+        [Required(ErrorMessage = "Address is required.")]
         public string Address { get; set; }
+
+        [Required(ErrorMessage = "City is required.")]
         public string City { get; set; }
 
-        [Required(ErrorMessage = "The phone number is required.")]
-        [Phone(ErrorMessage = "Please enter a valid phone number.")]
+        [Required(ErrorMessage = "Phone Number is required.")]
+        [RegularExpression(@"^(010|011|012|015)\d{8}$", ErrorMessage = "Please enter a valid Egyptian phone number.")]
         public string Phone { get; set; }
 
     }
