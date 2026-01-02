@@ -15,9 +15,12 @@ namespace MyShop.DataAccess.Configurations
         {
             builder.Property(P => P.Name).IsRequired();
             builder.Property(P => P.Price).IsRequired();
+            builder.Property(P => P.PriceAfterDiscount).IsRequired();
             builder.Property(P => P.CategoryId).IsRequired();
 
             builder.Property(P => P.Price).HasColumnType("decimal(12,2)");
+            builder.Property(P => P.PriceBeforeDiscount).HasColumnType("decimal(12,2)");
+            builder.Property(P => P.PriceAfterDiscount).HasColumnType("decimal(12,2)");
         }
     }
 }

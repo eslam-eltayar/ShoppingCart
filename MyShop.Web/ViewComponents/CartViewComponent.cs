@@ -1,42 +1,23 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MyShop.DataAccess.Repositories.Imp;
-using MyShop.Entities.Repositories;
 using MyShop.Utilities;
-using System.Security.Claims;
+using MyShop.Web.Services;
 
 namespace MyShop.Web.ViewComponents
 {
     public class CartViewComponent : ViewComponent
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISessionCartService _cartService;
 
-        public CartViewComponent(IUnitOfWork unitOfWork)
+        public CartViewComponent(ISessionCartService cartService)
         {
-            _unitOfWork = unitOfWork;
+            _cartService = cartService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-            if (claim != null)
-            {
-                if (HttpContext.Session.GetInt32(SD.SessionKey) != null)
-                {
-                    return View(HttpContext.Session.GetInt32(SD.SessionKey));
-                }
-                else
-                {
-                    HttpContext.Session.SetInt32(SD.SessionKey, _unitOfWork.ShoppingCart.GetAll(x => x.AppUserId == claim.Value).ToList().Count());
-                    return View(HttpContext.Session.GetInt32(SD.SessionKey));
-                }
-            }
-            else
-            {
-                HttpContext.Session.Clear();
-                return View(0);
-            }
+            var count = _cartService.GetCartCount();
+            HttpContext.Session.SetInt32(SD.SessionKey, count);
+            return View(count);
         }
     }
 }

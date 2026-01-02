@@ -116,7 +116,6 @@ namespace MyShop.Web.Areas.Identity.Pages.Account
             {
                 _roleManager.CreateAsync(new IdentityRole(SD.AdminRole)).GetAwaiter().GetResult();
                 _roleManager.CreateAsync(new IdentityRole(SD.EditorRole)).GetAwaiter().GetResult();
-                _roleManager.CreateAsync(new IdentityRole(SD.CustomerRole)).GetAwaiter().GetResult();
             }
 
 
@@ -146,15 +145,14 @@ namespace MyShop.Web.Areas.Identity.Pages.Account
 
                     string roleFromForm = HttpContext.Request.Form["RoleRadio"].ToString();
 
-                    if (String.IsNullOrEmpty(roleFromForm))
+                    if (!String.IsNullOrEmpty(roleFromForm))
                     {
-                        await _userManager.AddToRoleAsync(user, SD.CustomerRole);
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return LocalRedirect(returnUrl);
+                        await _userManager.AddToRoleAsync(user, roleFromForm);
                     }
                     else
                     {
-                        await _userManager.AddToRoleAsync(user, roleFromForm);
+                        // Default to Editor role if no role selected
+                        await _userManager.AddToRoleAsync(user, SD.EditorRole);
                     }
 
                     return RedirectToAction("Index", "Users", new { area = SD.AdminRole });

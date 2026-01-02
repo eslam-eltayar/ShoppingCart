@@ -17,7 +17,15 @@ namespace MyShop.Entities.Models
         [DisplayName("Image")]
         [ValidateNever]
         public string? Img { get; set; }
-        public decimal Price { get; set; }
+        
+        [DisplayName("Price Before Discount")]
+        public decimal? PriceBeforeDiscount { get; set; }
+        
+        [DisplayName("Price After Discount")]
+        public decimal PriceAfterDiscount { get; set; }
+        
+        [DisplayName("Price")]
+        public decimal Price { get; set; } // This will be the selling price (PriceAfterDiscount)
 
         [DisplayName("Category")]
         [ValidateNever]

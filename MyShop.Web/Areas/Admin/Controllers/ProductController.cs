@@ -80,7 +80,18 @@ namespace MyShop.Web.Areas.Admin.Controllers
                     productVm.Product.Img = Path.Combine("Images", "Products", fileName + extension);
                 }
 
-
+                // Set Price to PriceAfterDiscount (selling price)
+                // If PriceAfterDiscount is 0, use PriceBeforeDiscount or Price as fallback
+                if (productVm.Product.PriceAfterDiscount > 0)
+                {
+                    productVm.Product.Price = productVm.Product.PriceAfterDiscount;
+                }
+                else if (productVm.Product.PriceBeforeDiscount.HasValue && productVm.Product.PriceBeforeDiscount.Value > 0)
+                {
+                    productVm.Product.Price = productVm.Product.PriceBeforeDiscount.Value;
+                    productVm.Product.PriceAfterDiscount = productVm.Product.PriceBeforeDiscount.Value;
+                }
+                // If both are 0, Price should already have a value from the form
 
                 _unitOfWork.Product.Add(productVm.Product);
                 _unitOfWork.Complete();
@@ -102,9 +113,22 @@ namespace MyShop.Web.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            var product = _unitOfWork.Product.GetFirstOrDefault(P => P.Id == id);
+            
+            if (product == null)
+            {
+                return NotFound();
+            }
+            
+            // Initialize PriceAfterDiscount from Price if not set (for existing products)
+            if (product.PriceAfterDiscount == 0 && product.Price > 0)
+            {
+                product.PriceAfterDiscount = product.Price;
+            }
+
             ProductViewModel productVm = new ProductViewModel()
             {
-                Product = _unitOfWork.Product.GetFirstOrDefault(P => P.Id == id),
+                Product = product,
                 CategoryList = _unitOfWork.Category.GetAll().Select(C => new SelectListItem
                 {
                     Text = C.Name,
@@ -157,6 +181,22 @@ namespace MyShop.Web.Areas.Admin.Controllers
                     productVm.Product.Img = Path.Combine("Images", "Products", fileName + extension);
                 }
 
+                // Set Price to PriceAfterDiscount (selling price)
+                // If PriceAfterDiscount is 0, keep the existing Price value
+                if (productVm.Product.PriceAfterDiscount > 0)
+                {
+                    productVm.Product.Price = productVm.Product.PriceAfterDiscount;
+                }
+                else
+                {
+                    // Get existing product to preserve Price if PriceAfterDiscount is not set
+                    var existingProduct = _unitOfWork.Product.GetFirstOrDefault(p => p.Id == productVm.Product.Id);
+                    if (existingProduct != null && existingProduct.Price > 0)
+                    {
+                        productVm.Product.Price = existingProduct.Price;
+                        productVm.Product.PriceAfterDiscount = existingProduct.Price;
+                    }
+                }
 
                 _unitOfWork.Product.Update(productVm.Product);
                 _unitOfWork.Complete();

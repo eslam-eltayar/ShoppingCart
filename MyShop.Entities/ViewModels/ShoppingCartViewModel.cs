@@ -9,10 +9,16 @@ namespace MyShop.Entities.ViewModels
 {
     public class ShoppingCartViewModel
     {
-        public IEnumerable<ShoppingCart> ShoppingCarts { get; set; }
+        public List<CartItemViewModel> CartItems { get; set; } = new List<CartItemViewModel>();
         public decimal TotalPrice { get; set; }
 
-        public OrderHeader OrderHeader { get; set; }
+        public OrderHeader OrderHeader { get; set; } = new OrderHeader();
+    }
 
+    public class CartItemViewModel
+    {
+        public int ProductId { get; set; }
+        public Product Product { get; set; }
+        public int Count { get; set; }
     }
 }

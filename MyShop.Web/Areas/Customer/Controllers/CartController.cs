@@ -1,72 +1,83 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.AspNetCore.Mvc;
 using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.ViewModels;
 using MyShop.Utilities;
-using Stripe.Checkout;
-using System.Security.Claims;
+using MyShop.Web.Services;
 
 namespace MyShop.Web.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    [Authorize]
     public class CartController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ShoppingCartViewModel ShoppingCartVM { get; set; }
-        public CartController(IUnitOfWork unitOfWork)
+        private readonly ISessionCartService _cartService;
+
+        public CartController(IUnitOfWork unitOfWork, ISessionCartService cartService)
         {
             _unitOfWork = unitOfWork;
+            _cartService = cartService;
         }
-
-
 
         public IActionResult Index()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            var cartItems = _cartService.GetCartItems();
+            var viewModel = new ShoppingCartViewModel();
 
-            ShoppingCartVM = new ShoppingCartViewModel()
+            foreach (var item in cartItems)
             {
-                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(S => S.AppUserId == claim.Value, Includes: "Product")
-            };
+                var product = _unitOfWork.Product.GetFirstOrDefault(p => p.Id == item.ProductId, Includes: "Category");
+                if (product != null)
+                {
+                    viewModel.CartItems.Add(new CartItemViewModel
+                    {
+                        ProductId = item.ProductId,
+                        Product = product,
+                        Count = item.Count
+                    });
 
-            foreach (var item in ShoppingCartVM.ShoppingCarts)
-            {
-                ShoppingCartVM.TotalPrice += (item.Count * item.Product.Price);
+                    var price = product.PriceAfterDiscount > 0 ? product.PriceAfterDiscount : product.Price;
+                    viewModel.TotalPrice += price * item.Count;
+                }
             }
 
-            return View(ShoppingCartVM);
+            return View(viewModel);
         }
 
         [HttpGet]
         public IActionResult Summary()
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-            ShoppingCartVM = new ShoppingCartViewModel()
+            var cartItems = _cartService.GetCartItems();
+            
+            if (cartItems.Count == 0)
             {
-                ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == claim.Value, Includes: "Product"),
-                OrderHeader = new()
-            };
-
-            ShoppingCartVM.OrderHeader.AppUser = _unitOfWork.AppUser.GetFirstOrDefault(x => x.Id == claim.Value);
-
-            ShoppingCartVM.OrderHeader.Name = ShoppingCartVM.OrderHeader.AppUser.Name;
-            ShoppingCartVM.OrderHeader.Address = ShoppingCartVM.OrderHeader.AppUser.Address;
-            ShoppingCartVM.OrderHeader.City = ShoppingCartVM.OrderHeader.AppUser.City;
-            ShoppingCartVM.OrderHeader.Phone = ShoppingCartVM.OrderHeader.AppUser.PhoneNumber;
-
-            foreach (var item in ShoppingCartVM.ShoppingCarts)
-            {
-                ShoppingCartVM.OrderHeader.TotalPrice += (item.Count * item.Product.Price);
+                TempData["error"] = "Your cart is empty.";
+                return RedirectToAction("Index");
             }
 
-            return View(ShoppingCartVM);
+            var viewModel = new ShoppingCartViewModel
+            {
+                OrderHeader = new OrderHeader()
+            };
 
+            foreach (var item in cartItems)
+            {
+                var product = _unitOfWork.Product.GetFirstOrDefault(p => p.Id == item.ProductId, Includes: "Category");
+                if (product != null)
+                {
+                    viewModel.CartItems.Add(new CartItemViewModel
+                    {
+                        ProductId = item.ProductId,
+                        Product = product,
+                        Count = item.Count
+                    });
+
+                    var price = product.PriceAfterDiscount > 0 ? product.PriceAfterDiscount : product.Price;
+                    viewModel.TotalPrice += price * item.Count;
+                }
+            }
+
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -74,154 +85,119 @@ namespace MyShop.Web.Areas.Customer.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult POSTSummary(ShoppingCartViewModel shoppingCartVM)
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claim = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier); // get current user
-
-            shoppingCartVM.ShoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == claim.Value, Includes: "Product");
-
-            shoppingCartVM.OrderHeader.OrderStatus = SD.Pending;
-            shoppingCartVM.OrderHeader.PaymentStatus = SD.Pending;
-            shoppingCartVM.OrderHeader.OrderDate = DateTime.Now;
-            shoppingCartVM.OrderHeader.AppUserId = claim.Value;
-
-
-            foreach (var item in shoppingCartVM.ShoppingCarts)
+            var cartItems = _cartService.GetCartItems();
+            
+            if (cartItems.Count == 0)
             {
-                shoppingCartVM.OrderHeader.TotalPrice += (item.Count * item.Product.Price);
+                TempData["error"] = "Your cart is empty.";
+                return RedirectToAction("Index");
             }
 
-            _unitOfWork.OrderHeader.Add(shoppingCartVM.OrderHeader);
-            _unitOfWork.Complete();
-
-            foreach (var item in shoppingCartVM.ShoppingCarts)
+            // Calculate total price
+            decimal totalPrice = 0;
+            foreach (var item in cartItems)
             {
-                OrderDetail orderDetail = new OrderDetail()
+                var product = _unitOfWork.Product.GetFirstOrDefault(p => p.Id == item.ProductId);
+                if (product != null)
                 {
-                    ProductId = item.ProductId,
-                    OrderHeaderId = shoppingCartVM.OrderHeader.Id,
-                    Price = item.Product.Price,
-                    Count = item.Count
-                };
-
-                _unitOfWork.OrderDetail.Add(orderDetail);
-                _unitOfWork.Complete();
+                    var price = product.PriceAfterDiscount > 0 ? product.PriceAfterDiscount : product.Price;
+                    totalPrice += price * item.Count;
+                }
             }
 
-            var domain = "https://localhost:7032/";
-
-            var options = new SessionCreateOptions
+            // Create OrderHeader
+            var orderHeader = new OrderHeader
             {
-                LineItems = new List<SessionLineItemOptions>(),
-
-                Mode = "payment",
-                SuccessUrl = domain + $"customer/cart/orderconfirmation?id={shoppingCartVM.OrderHeader.Id}",
-                CancelUrl = domain + $"customer/cart/index",
+                FullName = shoppingCartVM.OrderHeader.FullName,
+                PhoneNumber = shoppingCartVM.OrderHeader.PhoneNumber,
+                Address = shoppingCartVM.OrderHeader.Address,
+                Notes = shoppingCartVM.OrderHeader.Notes,
+                OrderDate = DateTime.Now,
+                OrderStatus = SD.New,
+                TotalPrice = totalPrice
             };
 
-            foreach (var item in shoppingCartVM.ShoppingCarts)
+            _unitOfWork.OrderHeader.Add(orderHeader);
+            _unitOfWork.Complete();
+
+            // Create OrderDetails
+            foreach (var item in cartItems)
             {
-                var sessionLineOption = new SessionLineItemOptions
+                var product = _unitOfWork.Product.GetFirstOrDefault(p => p.Id == item.ProductId);
+                if (product != null)
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    var price = product.PriceAfterDiscount > 0 ? product.PriceAfterDiscount : product.Price;
+                    
+                    var orderDetail = new OrderDetail
                     {
-                        UnitAmount = (long)(item.Product.Price * 100),
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = item.Product.Name,
-                        },
-                    },
-                    Quantity = item.Count,
-                };
-                options.LineItems.Add(sessionLineOption);
+                        ProductId = item.ProductId,
+                        OrderHeaderId = orderHeader.Id,
+                        Price = price,
+                        Count = item.Count
+                    };
+
+                    _unitOfWork.OrderDetail.Add(orderDetail);
+                }
             }
-
-
-            var service = new SessionService();
-            Session session = service.Create(options);
-            shoppingCartVM.OrderHeader.SessionId = session.Id;
-
-
 
             _unitOfWork.Complete();
 
-            Response.Headers.Add("Location", session.Url);
+            // Clear cart
+            _cartService.ClearCart();
 
-
-            return new StatusCodeResult(303);
+            return RedirectToAction("OrderConfirmation", new { id = orderHeader.Id });
         }
 
         public IActionResult OrderConfirmation(int id)
         {
-            OrderHeader orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
-            var service = new SessionService();
-            Session session = service.Get(orderHeader.SessionId);
-
-            if (session.PaymentStatus.ToLower() == "paid")
+            var orderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(u => u.Id == id);
+            
+            if (orderHeader == null)
             {
-                _unitOfWork.OrderHeader.UpdateOrderStatus(id, SD.Approve, SD.Approve);
-                orderHeader.PaymentIntentId = session.PaymentIntentId;
-                _unitOfWork.Complete();
+                TempData["error"] = "Order not found.";
+                return RedirectToAction("Index", "Home");
             }
 
-            List<ShoppingCart> shoppingCarts = _unitOfWork.ShoppingCart.GetAll(u => u.AppUserId == orderHeader.AppUserId).ToList();
-            // get oder cart of current user 
-
-            _unitOfWork.ShoppingCart.RemoveRange(shoppingCarts); // remove the cart of user after order confirmation
-            _unitOfWork.Complete();
-
-            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == orderHeader.AppUserId).ToList().Count();
-            HttpContext.Session.SetInt32(SD.SessionKey, count);
-
-            return View(id);
+            return View(orderHeader);
         }
 
-
-
-        public IActionResult Plus(int cartId)
+        public IActionResult Plus(int productId)
         {
-            var shppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-            _unitOfWork.ShoppingCart.IncreaseCart(shppingcart, 1);
-
-            _unitOfWork.Complete();
+            var cartItems = _cartService.GetCartItems();
+            var item = cartItems.FirstOrDefault(x => x.ProductId == productId);
+            
+            if (item != null)
+            {
+                _cartService.UpdateCartItem(productId, item.Count + 1);
+            }
 
             return RedirectToAction("Index");
         }
 
-
-        public IActionResult Minus(int cartId)
+        public IActionResult Minus(int productId)
         {
-            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-
-            if (shoppingcart.Count <= 1)
+            var cartItems = _cartService.GetCartItems();
+            var item = cartItems.FirstOrDefault(x => x.ProductId == productId);
+            
+            if (item != null)
             {
-                _unitOfWork.ShoppingCart.Remove(shoppingcart);
-
-                var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
-                HttpContext.Session.SetInt32(SD.SessionKey, count--);
-
+                if (item.Count <= 1)
+                {
+                    _cartService.RemoveFromCart(productId);
+                }
+                else
+                {
+                    _cartService.UpdateCartItem(productId, item.Count - 1);
+                }
             }
-            else
-            {
-                _unitOfWork.ShoppingCart.DecreaseCart(shoppingcart, 1);
-            }
-            _unitOfWork.Complete();
 
             return RedirectToAction("Index");
         }
 
-        public IActionResult Remove(int cartId)
+        public IActionResult Remove(int productId)
         {
-            var shoppingcart = _unitOfWork.ShoppingCart.GetFirstOrDefault(S => S.Id == cartId);
-
-            _unitOfWork.ShoppingCart.Remove(shoppingcart);
-            _unitOfWork.Complete();
-
-            var count = _unitOfWork.ShoppingCart.GetAll(s => s.AppUserId == shoppingcart.AppUserId).ToList().Count();
-            HttpContext.Session.SetInt32(SD.SessionKey, count);
-
+            _cartService.RemoveFromCart(productId);
             return RedirectToAction("Index");
         }
-
     }
 }

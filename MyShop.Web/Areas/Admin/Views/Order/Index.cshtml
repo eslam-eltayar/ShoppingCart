@@ -1,22 +1,275 @@
 ﻿@{
-    ViewBag.PageTitle = "Orders Management";
-    ViewBag.CardTitle = "View Orders";
+    ViewBag.PageTitle = ViewBag.FilterToday == true ? "Today's Orders" : "Orders Management";
+    ViewBag.CardTitle = ViewBag.FilterToday == true ? "Today's Orders" : "View Orders";
+    var isTodayOrders = ViewBag.FilterToday == true;
 }
 
-<table id="myTable" class="table table-hover" width="100%">
+<style>
+    /* Page Title & Subtitle for Today's Orders */
+    .page-subtitle {
+        color: #6c757d;
+        font-size: 0.95rem;
+        margin-top: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 400;
+    }
+
+    /* Orders Filter Tabs */
+    .orders-filter-tabs {
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .orders-filter-tabs .btn-filter {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: transparent;
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-radius: 0;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+    }
+
+    .orders-filter-tabs .btn-filter:hover {
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+
+    .orders-filter-tabs .btn-filter.active {
+        color: #667eea;
+        border-bottom-color: #667eea;
+        background-color: transparent;
+    }
+
+    .orders-filter-tabs .btn-filter.active:hover {
+        color: #667eea;
+        background-color: transparent;
+    }
+
+    .filter-count {
+        margin-left: 0.5rem;
+        font-weight: 600;
+        color: #667eea;
+    }
+
+    /* Table Header Styling */
+    #myTable thead th {
+        font-weight: 500;
+        color: #6c757d;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    /* Table Body Styling */
+    #myTable tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+
+    /* Pending Order Row Highlighting - Subtle Left Border Only */
+    #myTable tbody tr.order-pending {
+        border-left: 3px solid #ffc107;
+    }
+
+    #myTable tbody tr.order-pending:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Status Badges */
+    .order-status-badge {
+        display: inline-block;
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .order-status-badge.pending,
+    .order-status-badge.new {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+    }
+
+    .order-status-badge.processing {
+        background-color: #fff4e6;
+        color: #b45309;
+        border: 1px solid #ffd89b;
+    }
+
+    .order-status-badge.completed,
+    .order-status-badge.approved {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #badbcc;
+    }
+
+    .order-status-badge.cancelled {
+        background-color: #f8d7da;
+        color: #842029;
+        border: 1px solid #f5c2c7;
+    }
+
+    /* Phone Number Styling */
+    .phone-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .phone-link:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+
+    /* Total Price Styling */
+    .total-price {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.95rem;
+    }
+
+    .total-price.zero-price {
+        color: #6c757d;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    /* Action Button */
+    .btn-open-order {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+        background-color: #667eea;
+        border-color: #667eea;
+        color: #ffffff;
+    }
+
+    .btn-open-order:hover {
+        background-color: #5568d3;
+        border-color: #5568d3;
+        color: #ffffff;
+    }
+
+    /* Order ID Styling - Reduced Visual Weight */
+    .order-id {
+        font-weight: 500;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* Action Button - More Prominent */
+    .btn-open-order {
+        padding: 0.4rem 0.9rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    /* Hide Search for Today's Orders */
+    .today-orders-hide-search .dataTables_filter {
+        display: none;
+    }
+
+    .today-orders-hide-search .dataTables_length {
+        opacity: 0.6;
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+        min-height: 400px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        color: #dee2e6;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state-message {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+
+    /* Ensure content wrapper maintains height for sidebar */
+    .card-body {
+        min-height: calc(100vh - 250px);
+    }
+
+    /* Orders container - maintain minimum height */
+    .orders-container {
+        min-height: 500px;
+    }
+
+    /* Ensure table wrapper maintains space even when hidden */
+    #myTable_wrapper {
+        min-height: 300px;
+    }
+</style>
+
+<div class="orders-container">
+    @if (isTodayOrders)
+    {
+        <p class="page-subtitle">Orders received today that need your action</p>
+    }
+
+    <!-- Filter Tabs -->
+    <div class="orders-filter-tabs">
+        <button class="btn-filter @(!isTodayOrders ? "active" : "")" data-filter="all">All</button>
+        <button class="btn-filter @(isTodayOrders ? "active" : "")" data-filter="pending">
+            Pending<span class="filter-count" id="pending-count"></span>
+        </button>
+        <button class="btn-filter" data-filter="approved">Approved</button>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="@(isTodayOrders ? "today-orders-hide-search" : "")">
+        <table id="myTable" class="table table-hover" width="100%">
     <thead>
         <tr>
-            <td>Id</td>
-            <td>Name</td>
-            <td>Phone</td>
-            <td>Email</td>
-            <td>OrderStatus</td>
-            <td>TotalPrice</td>
-            <td>Actions</td>
+            <th>Order ID</th>
+            <th>Customer Name</th>
+            <th>Phone Number</th>
+            <th>Order Status</th>
+            <th>Total Price</th>
+            <th>Action</th>
         </tr>
     </thead>
+    <tbody>
+        <!-- DataTables will populate this -->
+    </tbody>
 </table>
+    </div>
+
+    <!-- Empty State (hidden by default, shown via JavaScript if no data) -->
+    <div id="empty-state" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <p class="empty-state-message">No orders today. New orders will appear here automatically.</p>
+    </div>
+</div>
 
 @section Scripts {
-    <script src="~/js/orders.js"></script>
+    <script>
+        // Pass filterToday flag to JavaScript
+        window.isTodayOrders = @(isTodayOrders ? "true" : "false");
+    </script>
+    <script src="~/js/orders.js?v=@DateTime.Now.Ticks"></script>
 }

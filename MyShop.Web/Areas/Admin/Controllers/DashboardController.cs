@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Utilities;
 
@@ -17,10 +18,27 @@ namespace MyShop.Web.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.Orders = _unitOfWork.OrderHeader.GetAll().Count();
-            ViewBag.ApprovedOrders = _unitOfWork.OrderHeader.GetAll(x => x.OrderStatus == SD.Approve).Count();
-            ViewBag.Users = _unitOfWork.AppUser.GetAll().Count();
+            var today = DateTime.Today;
+            var tomorrow = today.AddDays(1);
+
+            // New Orders (Today)
+            ViewBag.NewOrdersToday = _unitOfWork.OrderHeader
+                .GetAll(o => o.OrderDate >= today && o.OrderDate < tomorrow)
+                .Count();
+
+            // Total Orders
+            ViewBag.TotalOrders = _unitOfWork.OrderHeader.GetAll().Count();
+
+            // Products
             ViewBag.Products = _unitOfWork.Product.GetAll().Count();
+
+            // Latest 5 Orders
+            ViewBag.LatestOrders = _unitOfWork.OrderHeader
+                .GetAll()
+                .OrderByDescending(o => o.OrderDate)
+                .Take(5)
+                .ToList();
+
             return View();
         }
     }

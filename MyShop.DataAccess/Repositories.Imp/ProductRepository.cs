@@ -27,6 +27,8 @@ namespace MyShop.DataAccess.Repositories.Imp
                 productInDb.Name = product.Name;
                 productInDb.Description = product.Description;
                 productInDb.Price = product.Price;
+                productInDb.PriceBeforeDiscount = product.PriceBeforeDiscount;
+                productInDb.PriceAfterDiscount = product.PriceAfterDiscount;
                 productInDb.Img = product.Img;
                 productInDb.CategoryId = product.CategoryId;
             }

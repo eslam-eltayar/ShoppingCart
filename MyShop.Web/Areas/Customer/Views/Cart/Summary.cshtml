@@ -1,7 +1,7 @@
 ﻿@model ShoppingCartViewModel
 @using Microsoft.Extensions.Options
 @using MyShop.Utilities
-@inject IOptions<StripeData> Stripe
+@*@inject IOptions<StripeData> Stripe*@ @* Commented out - using cash on delivery instead *@
 
 
 <!doctype html>
@@ -26,42 +26,34 @@
                     <div class="mobile h5">Billing Address</div>
                     <div id="details" class="bg-white rounded pb-5">
                         <div class="form-group">
-                            <label>Name</label>
+                            <label>Full Name</label>
                             <div class="d-flex jusify-content-start align-items-center rounded p-2">
-                                <input asp-for="OrderHeader.Name" type="text">
-                                <span asp-validation-for="OrderHeader.Name" class="text-danger"></span>
+                                <input asp-for="OrderHeader.FullName" type="text">
+                                <span asp-validation-for="OrderHeader.FullName" class="text-danger"></span>
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label>City</label>
-                                    <div class="d-flex jusify-content-start align-items-center rounded p-2">
-                                        <input asp-for="OrderHeader.City" type="text">
-                                        <span asp-validation-for="OrderHeader.City" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="form-group">
-                                    <label>Phone Number</label>
-                                    <div class="d-flex jusify-content-start align-items-center rounded p-2">
-                                        <input asp-for="OrderHeader.Phone" type="text">
-                                        <span asp-validation-for="OrderHeader.Phone" class="text-danger"></span>
-                                    </div>
-                                </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <div class="d-flex jusify-content-start align-items-center rounded p-2">
+                                <input asp-for="OrderHeader.PhoneNumber" type="text">
+                                <span asp-validation-for="OrderHeader.PhoneNumber" class="text-danger"></span>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div class="form-group">
-                                    <label>Address</label>
-                                    <div class="d-flex jusify-content-start align-items-center rounded p-2">
-                                        <input type="text" asp-for="OrderHeader.Address" />
-                                        <span asp-validation-for="OrderHeader.Address" class="text-danger"></span>
-                                    </div>
-                                </div>
+
+                        <div class="form-group">
+                            <label>Address</label>
+                            <div class="d-flex jusify-content-start align-items-center rounded p-2">
+                                <input type="text" asp-for="OrderHeader.Address" />
+                                <span asp-validation-for="OrderHeader.Address" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notes (Optional)</label>
+                            <div class="d-flex jusify-content-start align-items-center rounded p-2">
+                                <textarea asp-for="OrderHeader.Notes" rows="3" class="form-control"></textarea>
+                                <span asp-validation-for="OrderHeader.Notes" class="text-danger"></span>
                             </div>
                         </div>
                     </div>
@@ -75,9 +67,9 @@
                                 <a href="/Customer/Cart/Index">Edit</a>
                             </div>
                         </div>
-                        @foreach (var item in Model.ShoppingCarts)
+                        @foreach (var item in Model.CartItems)
                         {
-                            <div class="d-flex jusitfy-content-between align-items-center pt-3 pb-2 border-bottom">
+                                <div class="d-flex jusitfy-content-between align-items-center pt-3 pb-2 border-bottom">
                                 <div class="item pr-2">
                                     <img src="/@item.Product.Img"
                                          alt="" width="80" height="80">
@@ -87,7 +79,24 @@
                                     <b class="h5">@item.Product.Name</b>
                                 </div>
                                 <div class="ml-auto">
-                                    <b class="h5">$@item.Product.Price</b>
+                                    @{
+                                        var price = item.Product.PriceAfterDiscount > 0 ? item.Product.PriceAfterDiscount : item.Product.Price;
+                                    }
+                                    @if (item.Product.PriceBeforeDiscount.HasValue && item.Product.PriceBeforeDiscount.Value > item.Product.PriceAfterDiscount)
+                                    {
+                                        var discountPercent = Math.Round(((item.Product.PriceBeforeDiscount.Value - item.Product.PriceAfterDiscount) / item.Product.PriceBeforeDiscount.Value) * 100, 0);
+                                        <div>
+                                            <span class="badge bg-danger mb-1">-@discountPercent%</span>
+                                            <div>
+                                                <span class="text-decoration-line-through text-muted small me-2">@item.Product.PriceBeforeDiscount.Value.ToString("N2") EGP</span>
+                                                <b class="h5">@item.Product.PriceAfterDiscount.ToString("N2") EGP</b>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <b class="h5">@price.ToString("N2") EGP</b>
+                                    }
                                 </div>
                             </div>
                         }
@@ -97,8 +106,8 @@
                         <div class="d-flex align-items-center py-2">
                             <div class="display-5">Total</div>
                             <div class="ml-auto d-flex">
-                                <div class="text-primary text-uppercase px-3">usd</div>
-                                <div class="font-weight-bold">$@Model.OrderHeader.TotalPrice</div>
+                                <div class="text-primary text-uppercase px-3">EGP</div>
+                                <div class="font-weight-bold">@Model.TotalPrice.ToString("N2") EGP</div>
                             </div>
                         </div>
                     </div>

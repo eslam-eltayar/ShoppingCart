@@ -1,5 +1,14 @@
 ﻿@model int
 
-<span class="badge bg-dark text-white ms-1 rounded-pill">
-    @Model
-</span>
+@if (Model > 0)
+{
+    <span class="badge bg-dark text-white ms-1 rounded-pill">
+        @Model
+    </span>
+}
+else
+{
+    <span class="badge bg-secondary text-white ms-1 rounded-pill">
+        0
+    </span>
+}

@@ -1,143 +1,364 @@
 ﻿@{
-    ViewBag.PageTitle = "Admin Area";
-    ViewBag.CardTitle = "Dashboard";
+    ViewBag.PageTitle = "Orders Dashboard";
+    ViewBag.CardTitle = "Orders Dashboard";
 }
-<!-- Bootstrap CSS -->
-<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-<!-- Ionicons -->
-<link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
 <style>
-    .small-box {
-        border-radius: 0.5rem;
-        padding: 20px;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        color: #fff;
+    .dashboard-container {
+        padding: 0;
+        margin-bottom: 0;
     }
 
-        .small-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .small-box .icon i {
-            font-size: 3rem;
-            transition: transform 0.3s ease;
-        }
-
-        .small-box:hover .icon i {
-            transform: rotate(10deg);
-        }
-
-    .small-box-footer {
-        color: #fff;
-        text-decoration: none;
-        font-weight: bold;
-        transition: color 0.3s ease;
+    .dashboard-container .row {
+        margin-bottom: 0;
     }
 
-        .small-box-footer:hover {
-            color: #ddd;
-        }
-
-    .bg-info {
-        background: linear-gradient(135deg, #17a2b8, #0d6efd);
+    .dashboard-container .row .stat-card {
+        margin-bottom: 0;
     }
 
-    .bg-success {
-        background: linear-gradient(135deg, #28a745, #218838);
+    .welcome-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .bg-warning {
-        background: linear-gradient(135deg, #ffc107, #e0a800);
+    .welcome-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
 
-    .bg-danger {
-        background: linear-gradient(135deg, #dc3545, #bd2130);
-    }
-
-    h3 {
-        font-size: 2.4rem;
-        font-weight: bold;
+    .welcome-section p {
+        font-size: 1rem;
+        opacity: 0.95;
         margin: 0;
     }
 
-    p {
-        font-size: 1.2rem;
+    .stat-card {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 0;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        border-color: #dee2e6;
+    }
+
+    .stat-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .stat-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .stat-card-icon.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-card-icon.success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .stat-card-icon.warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-card-icon.info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-card-icon.danger {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .stat-card-icon.secondary {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #333;
+    }
+
+    .stat-card.new-orders {
+        border: 2px solid #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .stat-card.new-orders .stat-card-value {
+        color: #667eea;
+    font-size: 2.5rem;
+    }
+
+    .latest-orders-table {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-top: 2rem;
+    }
+
+    .latest-orders-table h4 {
+        margin-bottom: 1.5rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .order-status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .order-status-badge.pending,
+    .order-status-badge.new {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .order-status-badge.processing {
+        background-color: #fff4e6;
+        color: #b45309;
+    }
+
+    .order-status-badge.completed {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .order-status-badge.cancelled {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .stat-card-title {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin: 0 0 0.5rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .stat-card-footer {
+        margin-top: auto;
+        padding-top: 1rem;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .stat-card-link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        transition: color 0.3s ease;
+    }
+
+    .stat-card-link i {
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card-link:hover {
+        color: #764ba2;
+        text-decoration: none;
+    }
+
+    .stat-card-link:hover i {
+        transform: translateX(3px);
+    }
+
+    @@media (max-width: 992px) {
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .welcome-section {
+            padding: 1.5rem;
+        }
+
+        .welcome-section h2 {
+            font-size: 1.5rem;
+        }
+
+        .welcome-section p {
+            font-size: 0.9rem;
+        }
+
+        .stat-card-value {
+            font-size: 1.75rem;
+        }
+
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
     }
 </style>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-                <div class="inner">
-                    <h3>@ViewBag.Orders</h3>
-                    <p>All Orders</p>
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h2>Orders Dashboard</h2>
+        <p>Manage customer orders in one place</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row" style="margin-bottom: 0;">
+        <!-- New Orders (Today) - Emphasized -->
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="stat-card new-orders">
+                <div class="stat-card-header">
+                    <div>
+                        <p class="stat-card-title">New Orders (Today)</p>
+                        <h3 class="stat-card-value">@ViewBag.NewOrdersToday</h3>
+                    </div>
+                    <div class="stat-card-icon primary">
+                        <i class="bi bi-cart-plus"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="ion ion-bag"></i>
+                <div class="stat-card-footer">
+                    <a href="/Admin/Order/Index?filterToday=true" class="stat-card-link">
+                        View Orders <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
-                <a href="/Admin/Order/Index" class="small-box-footer">
-                    More info <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <!-- ./col -->
-        <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-success">
-                <div class="inner">
-                    <h3>@ViewBag.ApprovedOrders</h3>
-                    <p>Approved Orders</p>
+
+        <!-- Total Orders -->
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <p class="stat-card-title">Total Orders</p>
+                        <h3 class="stat-card-value">@ViewBag.TotalOrders</h3>
+                    </div>
+                    <div class="stat-card-icon success">
+                        <i class="bi bi-cart-check"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="ion ion-stats-bars"></i>
+                <div class="stat-card-footer">
+                    <a href="/Admin/Order/Index" class="stat-card-link">
+                        View Orders <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
-                <a href="/Admin/Order/Index" class="small-box-footer">
-                    More info <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <!-- ./col -->
-        <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-warning">
-                <div class="inner">
-                    <h3>@ViewBag.Users</h3>
-                    <p>User Registrations</p>
+
+        <!-- Products -->
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div>
+                        <p class="stat-card-title">Products</p>
+                        <h3 class="stat-card-value">@ViewBag.Products</h3>
+                    </div>
+                    <div class="stat-card-icon secondary">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
                 </div>
-                <div class="icon">
-                    <i class="ion ion-person-add"></i>
+                <div class="stat-card-footer">
+                    <a href="/Admin/Product/Index" class="stat-card-link">
+                        Add Product <i class="bi bi-arrow-right"></i>
+                    </a>
                 </div>
-                <a href="/Admin/Users/Index" class="small-box-footer">
-                    More info <i class="fas fa-arrow-circle-right"></i>
-                </a>
             </div>
         </div>
-        <!-- ./col -->
-        <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>@ViewBag.Products</h3>
-                    <p>Products</p>
-                </div>
-                <div class="icon">
-                    <i class="ion ion-pie-graph"></i>
-                </div>
-                <a href="/Admin/Product/Index" class="small-box-footer">
-                    More info <i class="fas fa-arrow-circle-right"></i>
-                </a>
+    </div>
+
+    <!-- Latest Orders Table -->
+    <div class="latest-orders-table">
+        <h4>Latest Orders</h4>
+        @if (ViewBag.LatestOrders != null && ((List<OrderHeader>)ViewBag.LatestOrders).Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer Name</th>
+                            <th>Phone</th>
+                            <th>Status</th>
+                            <th>Order Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in (List<OrderHeader>)ViewBag.LatestOrders)
+                        {
+                            <tr>
+                                <td>#@order.Id</td>
+                                <td>@order.FullName</td>
+                                <td>@order.PhoneNumber</td>
+                                <td>
+                                    @{
+                                        var statusClass = order.OrderStatus?.ToLower() switch
+                                        {
+                                            "new" => "pending",
+                                            "pending" => "pending",
+                                            "processing" => "processing",
+                                            "completed" => "completed",
+                                            "cancelled" => "cancelled",
+                                            _ => "pending"
+                                        };
+                                    }
+                                    <span class="order-status-badge @statusClass">
+                                        @(order.OrderStatus ?? "Pending")
+                                    </span>
+                                </td>
+                                <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <a href="/Admin/Order/Details?orderid=@order.Id" class="btn btn-sm btn-primary">
+                                        Open Order
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
-        </div>
-        <!-- ./col -->
+        }
+        else
+        {
+            <p class="text-muted">No orders found.</p>
+        }
     </div>
 </div>
-
-<!-- Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

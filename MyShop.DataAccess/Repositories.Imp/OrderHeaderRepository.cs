@@ -2,6 +2,7 @@
 using MyShop.DataAccess.Data;
 using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
+using MyShop.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,18 +24,17 @@ namespace MyShop.DataAccess.Repositories.Imp
             _context.OrderHeaders.Update(orderHeader);
         }
 
-        public void UpdateOrderStatus(int id, string? orderStatus, string? paymentStatus)
+        public void UpdateOrderStatus(int id, string? orderStatus, string? paymentStatus = null)
         {
             var orderHeaderFromDb = _context.OrderHeaders.FirstOrDefault(x => x.Id == id);
 
             if (orderHeaderFromDb != null)
             {
                 orderHeaderFromDb.OrderStatus = orderStatus;
-                orderHeaderFromDb.OrderDate = DateTime.Now;
-
-                if (paymentStatus != null)
+                
+                if (orderStatus == SD.Completed)
                 {
-                    orderHeaderFromDb.PaymentStatus = paymentStatus;
+                    orderHeaderFromDb.ShippingDate = DateTime.Now;
                 }
             }
         }

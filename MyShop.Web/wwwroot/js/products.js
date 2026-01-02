@@ -8,20 +8,27 @@ function loaddata() {
             "url": "/Admin/Product/GetData",
             "dataSrc": "data"
         },
+        "order": [[0, "desc"]], // Default sorting: Name descending
         "columns": [
             { "data": "name" },
             { "data": "description" },
-            { "data": "price" },
+            { 
+                "data": "price",
+                "render": function (data) {
+                    const price = parseFloat(data);
+                    return `<span class="price-value">${price.toFixed(2)} EGP</span>`;
+                }
+            },
             { "data": "category.name" },
             {
-
                 "data": "id",
                 "render": function (data) {
                     return `
-                    <a href="/Admin/Product/Edit/${data}" class="btn btn-success"> Edit </a>
-                    <a onClick=DeleteItem("/Admin/Product/Delete/${data}") class="btn btn-danger"> Delete </a>
+                    <a href="/Admin/Product/Edit/${data}" class="btn btn-sm btn-action btn-edit">Edit</a>
+                    <a onClick="DeleteItem('/Admin/Product/Delete/${data}')" class="btn btn-sm btn-action btn-delete">Delete</a>
                     `
-                }
+                },
+                "orderable": false
             }
         ]
     });

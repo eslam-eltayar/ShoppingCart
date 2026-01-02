@@ -4,7 +4,6 @@ using MyShop.Entities.Models;
 using MyShop.Entities.Repositories;
 using MyShop.Entities.ViewModels;
 using MyShop.Utilities;
-using Stripe;
 
 namespace MyShop.Web.Areas.Admin.Controllers
 {
@@ -14,7 +13,7 @@ namespace MyShop.Web.Areas.Admin.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        [BindProperty] // bind data from HTTP requests (such as FORM data, query strings, route data, or JSON)
+        [BindProperty]
         public OrderViewModel OrderVM { get; set; }
 
         public OrderController(IUnitOfWork unitOfWork)
@@ -22,15 +21,31 @@ namespace MyShop.Web.Areas.Admin.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(bool? filterToday)
         {
+            ViewBag.FilterToday = filterToday ?? false;
             return View();
         }
 
-        public IActionResult GetData()
+        public IActionResult GetData(bool? filterToday)
         {
             IEnumerable<OrderHeader> orderHeaders;
-            orderHeaders = _unitOfWork.OrderHeader.GetAll(Includes: "AppUser");
+            
+            if (filterToday == true)
+            {
+                var today = DateTime.Today;
+                var tomorrow = today.AddDays(1);
+                orderHeaders = _unitOfWork.OrderHeader.GetAll(o => o.OrderDate >= today && o.OrderDate < tomorrow)
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToList();
+            }
+            else
+            {
+                orderHeaders = _unitOfWork.OrderHeader.GetAll()
+                    .OrderByDescending(o => o.OrderDate)
+                    .ToList();
+            }
+            
             return Json(new { data = orderHeaders });
         }
 
@@ -38,9 +53,8 @@ namespace MyShop.Web.Areas.Admin.Controllers
         {
             OrderViewModel order = new OrderViewModel()
             {
-                OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == orderid, Includes: "AppUser"),
+                OrderHeader = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == orderid),
                 OrderDetails = _unitOfWork.OrderDetail.GetAll(o => o.OrderHeaderId == orderid, Includes: "Product")
-
             };
 
             return View(order);
@@ -52,10 +66,16 @@ namespace MyShop.Web.Areas.Admin.Controllers
         {
             var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
 
-            orderFromDb.Name = OrderVM.OrderHeader.Name;
-            orderFromDb.Phone = OrderVM.OrderHeader.Phone;
+            if (orderFromDb == null)
+            {
+                TempData["error"] = "Order not found.";
+                return RedirectToAction("Index");
+            }
+
+            orderFromDb.FullName = OrderVM.OrderHeader.FullName;
+            orderFromDb.PhoneNumber = OrderVM.OrderHeader.PhoneNumber;
             orderFromDb.Address = OrderVM.OrderHeader.Address;
-            orderFromDb.City = OrderVM.OrderHeader.City;
+            orderFromDb.Notes = OrderVM.OrderHeader.Notes;
 
             if (OrderVM.OrderHeader.Carrier != null)
             {
@@ -70,72 +90,78 @@ namespace MyShop.Web.Areas.Admin.Controllers
             _unitOfWork.OrderHeader.Update(orderFromDb);
             _unitOfWork.Complete();
 
-            TempData["Update"] = "Item has Updated Successfuly";
+            TempData["success"] = "Order details updated successfully.";
 
             return RedirectToAction(nameof(Details), "Order", new { orderid = orderFromDb.Id });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult StartProccess()
+        public IActionResult UpdateStatus(string status)
         {
-            _unitOfWork.OrderHeader.UpdateOrderStatus(OrderVM.OrderHeader.Id, SD.Proccessing, null);
+            var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
+
+            if (orderFromDb == null)
+            {
+                TempData["error"] = "Order not found.";
+                return RedirectToAction("Index");
+            }
+
+            if (status == SD.Processing)
+            {
+                _unitOfWork.OrderHeader.UpdateOrderStatus(OrderVM.OrderHeader.Id, SD.Processing);
+            }
+            else if (status == SD.Completed)
+            {
+                _unitOfWork.OrderHeader.UpdateOrderStatus(OrderVM.OrderHeader.Id, SD.Completed);
+            }
+            else if (status == SD.Cancelled)
+            {
+                _unitOfWork.OrderHeader.UpdateOrderStatus(OrderVM.OrderHeader.Id, SD.Cancelled);
+            }
+
             _unitOfWork.Complete();
 
-            TempData["Update"] = "Order Status has Updated Successfuly";
+            TempData["success"] = "Order status updated successfully.";
 
             return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult StartShip()
+        public IActionResult StartShipping()
         {
             var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
 
+            if (orderFromDb == null)
+            {
+                TempData["error"] = "Order not found.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrEmpty(OrderVM.OrderHeader.Carrier))
+            {
+                TempData["error"] = "Please enter a carrier.";
+                return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
+            }
+
+            if (string.IsNullOrEmpty(OrderVM.OrderHeader.TrackingNumber))
+            {
+                TempData["error"] = "Please enter a tracking number.";
+                return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
+            }
+
             orderFromDb.TrackingNumber = OrderVM.OrderHeader.TrackingNumber;
             orderFromDb.Carrier = OrderVM.OrderHeader.Carrier;
-            orderFromDb.OrderStatus = SD.Shipped;
+            orderFromDb.OrderStatus = SD.Completed;
             orderFromDb.ShippingDate = DateTime.Now;
 
             _unitOfWork.OrderHeader.Update(orderFromDb);
             _unitOfWork.Complete();
 
-            TempData["Update"] = "Order has Shipped Successfuly";
+            TempData["success"] = "Order has been shipped successfully.";
 
             return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
         }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult CancelOrder()
-        {
-            var orderFromDb = _unitOfWork.OrderHeader.GetFirstOrDefault(o => o.Id == OrderVM.OrderHeader.Id);
-
-            if (orderFromDb.PaymentStatus == SD.Approve)
-            {
-                var option = new RefundCreateOptions()
-                {
-                    Reason = RefundReasons.RequestedByCustomer,
-                    PaymentIntent = orderFromDb.PaymentIntentId
-                };
-
-                var service = new RefundService();
-                Refund refund = service.Create(option);
-
-                _unitOfWork.OrderHeader.UpdateOrderStatus(orderFromDb.Id, SD.Cancelled, SD.Refund);
-            }
-            else
-            {
-                _unitOfWork.OrderHeader.UpdateOrderStatus(orderFromDb.Id, SD.Cancelled, SD.Cancelled);
-            }
-            _unitOfWork.Complete();
-
-
-            TempData["Update"] = "Order has Cancelled Successfuly";
-
-            return RedirectToAction(nameof(Details), "Order", new { orderid = OrderVM.OrderHeader.Id });
-        }
-
     }
 }

@@ -1,28 +1,61 @@
-﻿@model ShoppingCart
+﻿@model MyShop.Entities.ViewModels.ProductDetailsViewModel
 
-<form method="post" asp-action="Details">
+@if (Model?.Product == null)
+{
     <section class="py-5">
         <div class="container px-4 px-lg-5 my-5">
-            <div class="row gx-4 gx-lg-5 align-items-center">
-                <input type="hidden" asp-for="ProductId" />
-                <div class="col-md-6"><img class="card-img-top mb-5 mb-md-0" src="~/@Model.Product.Img" alt="..." width="600" height="700"></div>
-                <div class="col-md-6">
-                    <div class="small mb-1">@Model.Product.Category.Name</div>
-                    <h1 class="display-5 fw-bolder">@Model.Product.Name</h1>
-                    <div class="fs-5 mb-5">
-                        <span class="text-decoration-line-through">$45.00</span>
-                        <span>$@Model.Product.Price</span>
-                    </div>
-                    <p class="lead">@Html.Raw(Model.Product.Description)</p>
-                    <div class="d-flex">
-                        <input class="form-control text-center me-3" id="inputQuantity" asp-for="Count" style="max-width: 3rem">
-                        <button class="btn btn-outline-dark flex-shrink-0" type="submit">
-                            <i class="bi-cart-fill me-1"></i>
-                            Add to cart
-                        </button>
-                    </div>
-                </div>
+            <div class="text-center">
+                <h2>Product not found</h2>
+                <p>The product you are looking for does not exist or has been removed.</p>
+                <a asp-action="Index" class="btn btn-primary">Return to Products</a>
             </div>
         </div>
     </section>
-</form>
+}
+else
+{
+    <form method="post" asp-action="Details" asp-area="Customer">
+        @Html.AntiForgeryToken()
+        <section class="py-5">
+            <div class="container px-4 px-lg-5 my-5">
+                <div class="row gx-4 gx-lg-5 align-items-center">
+                    <input type="hidden" name="productId" value="@Model.Product.Id" />
+                    <div class="col-md-6"><img class="card-img-top mb-5 mb-md-0" src="~/@Model.Product.Img" alt="..." width="600" height="700"></div>
+                    <div class="col-md-6">
+                        <div class="small mb-1">@Model.Product.Category?.Name</div>
+                        <h1 class="display-5 fw-bolder">@Model.Product.Name</h1>
+                        <div class="fs-5 mb-5">
+                            @{
+                                var sellingPrice = Model.Product.PriceAfterDiscount > 0 ? Model.Product.PriceAfterDiscount : Model.Product.Price;
+                            }
+                            @if (Model.Product.PriceBeforeDiscount.HasValue && Model.Product.PriceBeforeDiscount.Value > sellingPrice && Model.Product.PriceBeforeDiscount.Value > 0)
+                            {
+                                var discountPercent = Math.Round(((Model.Product.PriceBeforeDiscount.Value - sellingPrice) / Model.Product.PriceBeforeDiscount.Value) * 100, 0);
+                                <div class="mb-3">
+                                    <span class="badge bg-danger fs-6">-@discountPercent% OFF</span>
+                                </div>
+                                <div>
+                                    <span class="text-decoration-line-through text-muted me-2 fs-5">@Model.Product.PriceBeforeDiscount.Value.ToString("N2") EGP</span>
+                                    <span class="text-danger fw-bold fs-4">@sellingPrice.ToString("N2") EGP</span>
+                                </div>
+                            }
+                            else
+                            {
+                                @* No discount - show regular price *@
+                                <span class="fw-bold fs-4">@sellingPrice.ToString("N2") EGP</span>
+                            }
+                        </div>
+                        <p class="lead">@Html.Raw(Model.Product.Description)</p>
+                        <div class="d-flex">
+                            <input class="form-control text-center me-3" id="inputQuantity" name="count" type="number" min="1" value="@Model.Count" style="max-width: 3rem">
+                            <button class="btn btn-outline-dark flex-shrink-0" type="submit">
+                                <i class="bi-cart-fill me-1"></i>
+                                Add to cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </form>
+}

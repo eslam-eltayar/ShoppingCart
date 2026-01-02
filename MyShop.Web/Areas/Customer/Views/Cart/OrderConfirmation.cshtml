@@ -1,13 +1,60 @@
-﻿@model int
+﻿@model MyShop.Entities.Models.OrderHeader
 
 <section class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h3 class="display-4 mb-4 text-success">Thank You!</h3>
+        <div class="col-md-10 col-lg-8 text-center">
+            <div class="mb-4">
+                <i class="bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+            </div>
+            <h2 class="display-4 mb-3 text-success fw-bold">شكراً لك!</h2>
+            <h3 class="display-5 mb-4 text-dark">Thank You!</h3>
             <img src="~/img/confirm.jpg" class="img-fluid rounded mb-4" alt="Order Confirmation" style="max-width: 400px;" />
-            <h2 class="display-5 mb-3 text-dark">Your Order Has Been Successfully Placed</h2>
-            <p class="lead text-muted">We appreciate your business. You will receive an email confirmation shortly with details of your order and a link to track its status.</p>
-            <a href="/" class="btn btn-primary btn-lg mt-4">Return to Home</a>
+            <h4 class="mb-4 text-dark">Your Order Has Been Successfully Placed</h4>
+            
+            <div class="alert alert-success mb-4 shadow-sm" role="alert">
+                <h5 class="alert-heading mb-3">
+                    <i class="bi-telephone-fill me-2"></i>Order #@Model.Id
+                </h5>
+                <p class="mb-2"><strong>Order Date:</strong> @Model.OrderDate.ToString("dd MMMM yyyy, hh:mm tt")</p>
+                <p class="mb-2"><strong>Items Total:</strong> <span class="text-primary fw-bold">@Model.TotalPrice.ToString("N2") EGP</span></p>
+                <p class="mb-2 text-muted"><small><i class="bi-info-circle me-1"></i>Shipping cost will be confirmed during our call</small></p>
+                <hr>
+                <p class="mb-0 lead fw-bold">
+                    <i class="bi-telephone me-2"></i>We will contact you soon to confirm your order details, shipping cost, and delivery information.
+                </p>
+            </div>
+            
+            <div class="card border-primary mb-4 shadow-sm">
+                <div class="card-body text-start">
+                    <h5 class="card-title mb-3"><i class="bi-info-circle me-2"></i>What's Next?</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="bi-check-circle-fill text-success me-2"></i>
+                            <strong>Order Received:</strong> Your order has been received and is being processed.
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi-telephone-fill text-primary me-2"></i>
+                            <strong>We Will Call You:</strong> Our team will call you soon at <strong>@Model.PhoneNumber</strong> to confirm your order.
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi-truck text-warning me-2"></i>
+                            <strong>Shipping Cost:</strong> The shipping cost will be confirmed during our call after your order is placed.
+                        </li>
+                        <li class="mb-3">
+                            <i class="bi-phone me-2 text-info"></i>
+                            <strong>Please Keep Your Phone Available:</strong> Make sure your phone is available to receive our confirmation call.
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi-heart-fill text-danger me-2"></i>
+                            <strong>Thank You:</strong> We appreciate your business and look forward to serving you!
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <a href="/Customer/Home" class="btn btn-primary btn-lg mt-2">
+                <i class="bi-house-fill me-2"></i>Continue Shopping
+            </a>
         </div>
     </div>
 </section>

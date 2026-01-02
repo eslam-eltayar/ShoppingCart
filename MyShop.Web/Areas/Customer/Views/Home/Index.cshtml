@@ -13,7 +13,7 @@
             <div class="text-center text-white position-relative" style="z-index: 2;">
                 <h1 class="display-4 fw-bolder text-uppercase animate__animated animate__fadeInDown">Top Electronics Await You!</h1>
                 <p class="lead fw-normal text-white-50 mb-0 animate__animated animate__fadeInUp">Find the best prices on smartphones, screens, and more with our latest offers.</p>
-                <a href="#shop" class="btn btn-primary btn-lg mt-4 animate__animated animate__bounceIn">Start Shopping</a>
+                @*<a href="#shop" class="btn btn-primary btn-lg mt-4 animate__animated animate__bounceIn">Start Shopping</a>*@
             </div>
         </div>
     </header>
@@ -37,12 +37,42 @@
                                 <!-- Product name-->
                                 <h5 class="fw-bolder">@item.Name</h5>
                                 <!-- Product price-->
-                                $@item.Price
+                                @{
+                                    var sellingPrice = item.PriceAfterDiscount > 0 ? item.PriceAfterDiscount : item.Price;
+                                }
+                                @if (item.PriceBeforeDiscount.HasValue && item.PriceBeforeDiscount.Value > sellingPrice && item.PriceBeforeDiscount.Value > 0)
+                                {
+                                    var discountPercent = Math.Round(((item.PriceBeforeDiscount.Value - sellingPrice) / item.PriceBeforeDiscount.Value) * 100, 0);
+                                    <div class="mb-2">
+                                        <span class="badge bg-danger">-@discountPercent%</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-decoration-line-through text-muted me-2">@item.PriceBeforeDiscount.Value.ToString("N2") EGP</span>
+                                        <span class="text-danger fw-bold">@sellingPrice.ToString("N2") EGP</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @* No discount - show regular price *@
+                                    <span>@sellingPrice.ToString("N2") EGP</span>
+                                }
                             </div>
                         </div>
                         <!-- Product actions-->
                         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
-                            <div class="text-center"><a class="btn btn-outline-dark mt-auto" href="\Customer\Home\Details\@item.Id">View Details</a></div>
+                            <div class="text-center">
+                                @*<a class="btn btn-outline-dark mt-auto" href="\Customer\Home\Details\@item.Id">View Details</a>*@
+                                <form method="post" asp-area="Customer" asp-controller="Home" asp-action="AddToCart" style="display: inline;">
+                                    <input type="hidden" name="productId" value="@item.Id" />
+                                    <input type="hidden" name="count" value="1" />
+                                    <input type="hidden" name="page" value="@currentPage" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-outline-dark mt-auto">
+                                        <i class="bi-cart-fill me-1"></i>
+                                        Add to Cart
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
